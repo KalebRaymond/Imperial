@@ -1,4 +1,12 @@
 /*Code adapted from https://github.com/TriMill/text_replacer (which in turn was adapted from https://github.com/labrose/webextensions-examples )*/
+/*KNOWN ISSUES: Doesn't put newlines back where they elong
+				Puts extraneous spaces into code blocks on webpages (github, stack, etc)
+				Doesn't check for cases where there is no space btw number & unit (ex 100kg) */
+				
+function isNumber(n)
+{
+	return !isNaN(n);
+}
 
 function replaceText (node)
  {
@@ -9,20 +17,19 @@ function replaceText (node)
 			return;
 		}
 							   
-		let content = node.textContent.split(" "); //Sweet, content is an array of strings. Just itereate over each word
+		let content = node.textContent.replace(/\n/g, " ").split(" "); //Replace newlines with spaces, separate text into array of words
 		node.textContent = "";
 		
 		//Iterate over words on page, add conversions where needed, put text back into node.textContent
-		for(var i = 0; i < content.length; ++i)
-		{
-			/*if(content[i] === "kg")
+		node.textContent  += content[0] + " "; 
+		for(var i = 1; i < content.length; ++i)
+		{	
+			if(content[i] === "kg" && isNumber(content[i - 1]))
 			{
-				console.log(content[i]);
-			}*/
+				content[i] = content[i].replace("kg", "kg (" + content[i - 1] * 2.205 + " lbs)");
+			}
 			
-			content[i] = content[i].replace("test", "AAA");
-			node.textContent  += content[i] + " "; //Don't forget to set the textContent equal to the work you just did
-												   //THIS CODE ADDS SPACES IN CODE??????? SEE TriMill GITHUB!!!!
+			node.textContent  += content[i] + " "; 
 		}
 	}
 	else 
