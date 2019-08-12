@@ -9,8 +9,53 @@ function isNumber(n)
 	return !isNaN(n);
 }
 
+//Parameters: 	num is a string value of the metric measurement
+//				unit is a string containing an SI abbreviation
+//Returns a string containing only the the unit and the converted value in imperial. 
+//Returned string does not contain the original metric value.
+function getConversion(num, unit)
+{
+	switch(unit.toLowerCase())
+	{
+		case "kg":
+			unit = unit.replace("kg", "kg (" + (num * 2.205).toFixed(4) + " lbs)");
+			break;
+		case "g":
+			unit = unit.replace("g", "g (" + (num * 0.0353).toFixed(2) + " oz)");
+			break;
+		case "km":
+			unit = unit.replace("km", "km (" + (num * 0.6214).toFixed(4) + " mi)");
+			break;
+		case "m":
+			unit = unit.replace("m", "m (" + (num * 3.2808).toFixed(4) + " ft)");
+			break;
+		case "cm":
+			if(parseInt(num, 10) > 50)
+			{
+				var inches = num * 0.393701;
+				var feet = Math.floor(inches / 12);
+				var inches = Math.round(inches % 12);
+				
+				unit = unit.replace("cm", "cm (" + feet + "'" + inches + "\")");
+			}
+			else
+			{
+				unit = unit.replace("cm", "cm (" + (num * 0.3937).toFixed(4) + " in)");
+			}
+			break;
+		case "km/h":
+			unit = unit.replace("km/h", "km/h (" + (num * 0.6214).toFixed(4) + " mph)");
+			break;
+		case "kmh":
+			unit = unit.replace("kmh", "kmh (" + (num * 0.6214).toFixed(4) + " mph)");
+			break;
+	}
+	
+	return unit;
+}
+
 function replaceText (node)
- {
+{
 	if (node.nodeType === Node.TEXT_NODE) 
 	{
 		if (node.parentNode && node.parentNode.nodeName === 'TEXTAREA') 
@@ -22,51 +67,34 @@ function replaceText (node)
 		node.textContent = "";
 		
 		//Iterate over words on page, add conversions where needed, put text back into node.textContent
-		node.textContent  += content[0] + " "; 
-		for(var i = 1; i < content.length; ++i)
+		for(var i = 0; i < content.length; ++i)
 		{	
-			if(isNumber(content[i - 1]))
+			if(i > 0 && isNumber(content[i - 1]))
 			{
-				switch(content[i].toLowerCase())
-				{
-					case "kg":
-						content[i] = content[i].replace("kg", "kg (" + (content[i - 1] * 2.205).toFixed(4) + " lbs)");
-						break;
-					case "g":
-						content[i] = content[i].replace("g", "g (" + (content[i - 1] * 0.0353).toFixed(2) + " oz)");
-						break;
-					case "km":
-						content[i] = content[i].replace("km", "km (" + (content[i - 1] * 0.6214).toFixed(4) + " mi)");
-						break;
-					case "m":
-						content[i] = content[i].replace("m", "m (" + (content[i - 1] * 3.2808).toFixed(4) + " ft)");
-						break;
-					case "cm":
-						if(parseInt(content[i - 1], 10) > 50)
-						{
-							var inches = content[i - 1] * 0.393701;
-							var feet = Math.floor(inches / 12);
-							var inches = Math.round(inches % 12);
-							
-							content[i] = content[i].replace("cm", "cm (" + feet + "'" + inches + "\")");
-						}
-						else
-						{
-							content[i] = content[i].replace("cm", "cm (" + (content[i - 1] * 0.3937).toFixed(4) + " in)");
-						}
-						break;
-					case "km/h":
-						content[i] = content[i].replace("km/h", "km/h (" + (content[i - 1] * 0.6214).toFixed(4) + " mph)");
-						break;
-					case "kmh":
-						content[i] = content[i].replace("kmh", "kmh (" + (content[i - 1] * 0.6214).toFixed(4) + " mph)");
-						break;
-				}
+				content[i] = getConversion(content[i - 1], content[i]);
 			}
 			
-			node.textContent  += content[i] + " "; 
+			//Check for cases where there's no space between number & unit (eg 100kg)
+			if(isNumber(content[i].charAt(0)) && isNaN(content[i]))
+			{
+				var num = "";
+				var unit = "";
+				for(var j = 0; j < content[i].length; ++j)
+				{
+					console.log(content[i].charAt(j));
+					if(isNumber(content[i].charAt(j)))
+						num += content[i].charAt(j);
+					else
+						unit += content[i].charAt(j);
+				}
+	
+				content[i] = num + getConversion(num, unit);
+			}
+			
+			node.textContent  += content[i] + " ";
 		}
 	}
+	
 	else 
 	{
 		for (let i = 0; i < node.childNodes.length; i++) 
