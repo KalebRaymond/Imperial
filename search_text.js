@@ -65,14 +65,22 @@ function replaceText (node)
 {
 	if (node.nodeType === Node.TEXT_NODE) 
 	{
+		//Ignore textarea nodes (like text boxes) to prevent converting text that is currently being typed in.
+		//Or at least tries to. Doesn't work if textarea contains children.
 		if (node.parentNode && node.parentNode.nodeName === 'TEXTAREA') 
 		{
 			return;
 		}
-							   
+			
+		//Ignore text nodes that only contain whitespaces, because if I don't it places the 
+		//newline key "~|?" all over the webpage for whatever reason.
+		if(!node.textContent.match(/[a-z]/i))
+		{
+			return;
+		}
+		
 		let content = node.textContent.replace(/\n/g, "~|? ").split(" "); //Replace newlines with spaces, separate text into array of words
-		//console.log(content);
-		node.textContent = "";
+		node.textContent = "";;
 		
 		//Iterate over words on page, add conversions where needed, put text back into node.textContent
 		for(var i = 0; i < content.length; ++i)
@@ -99,7 +107,21 @@ function replaceText (node)
 				content[i] = num + getConversion(num, unit);
 			}
 			
-			node.textContent += " " + content[i].replace("~|?", "\n");
+			if(content[i].includes("~|?"))
+			{
+				if(node.parentNode.tagName.toLowerCase() === "span")
+					node.textContent += content[i].replace("~|?", " ");
+				else
+					node.textContent += content[i].replace("~|?", "\n");
+			}
+			else if(i < content.length - 1)
+			{
+				node.textContent += content[i] + " ";
+			}
+			else
+			{
+				node.textContent += content[i];
+			}
 		}
 	}
 	
