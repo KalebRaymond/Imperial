@@ -71,6 +71,7 @@ function replaceText (node)
 		}
 							   
 		let content = node.textContent.replace(/\n/g, "~|? ").split(" "); //Replace newlines with spaces, separate text into array of words
+		//console.log(content);
 		node.textContent = "";
 		
 		//Iterate over words on page, add conversions where needed, put text back into node.textContent
@@ -89,7 +90,6 @@ function replaceText (node)
 				var unit = "";
 				for(var j = 0; j < content[i].length; ++j)
 				{
-					console.log(content[i].charAt(j));
 					if(isNumber(content[i].charAt(j)))
 						num += content[i].charAt(j);
 					else
@@ -99,12 +99,7 @@ function replaceText (node)
 				content[i] = num + getConversion(num, unit);
 			}
 			
-			if(content[i].includes("~|?"))
-				content[i] = content[i].replace("~|?", "\n");
-			else
-				content[i] += " ";
-			
-			node.textContent += content[i];
+			node.textContent += " " + content[i].replace("~|?", "\n");
 		}
 	}
 	
